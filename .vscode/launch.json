@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Attach to Game (asdebugger)",
+      "name": "Attach to AngelScript Demo",
       "type": "angelscript",
       "request": "attach",
       "host": "127.0.0.1",
@@ -10,16 +10,16 @@
       "protocol": "dap"
     },
     {
-      "name": "Launch Game and Debug",
+      "name": "Launch AngelScript Demo",
       "type": "angelscript",
       "request": "launch",
-      "executable": "${workspaceFolder}/bin/game.exe",
-      "args": [],
+      "executable": "${workspaceFolder}/build/bin/Release/angelscript-demo.exe",
+      "args": ["--wait"],
       "cwd": "${workspaceFolder}",
       "host": "127.0.0.1",
       "port": 9002,
       "protocol": "dap",
-      "stopOnEntry": false
+      "preLaunchTask": "Build AngelScript Demo"
     }
   ]
 }

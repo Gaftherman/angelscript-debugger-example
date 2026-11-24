@@ -1,6 +1,7 @@
-# Editor and OS noise
+/build/
+node_modules/
+.vs/
 .DS_Store
 Thumbs.db
 *.log
-# Local recordings before they are optimized
-docs/*.mp4
+/media/*.mp4

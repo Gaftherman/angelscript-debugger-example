@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build AngelScript Demo",
+      "type": "process",
+      "command": "cmd.exe",
+      "args": ["/d", "/c", "run-demo.cmd", "--build-only"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    }
+  ]
+}
