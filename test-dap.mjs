@@ -183,6 +183,13 @@ async function run(client, port, sessionRequest, step) {
         assert.match(stopped.frames[1]?.name ?? '', /\bshowProgress\(/);
         await setBreakpoints(client, basic, []);
     });
+    await step('step over the string initializer (prefix = "Total: ")', async () => {
+        await client.request('next', { threadId: basicStop.threadId });
+        const { frame } = await stackAt(client, 'step', basic, prefix + 1);
+        assert.match(frame.name, /\bformatProgress\(/);
+        const values = await locals(client, frame);
+        assert.equal(findVariable(values, 'prefix').value, '"Total: "');
+    });
 
     const advancedStop = await step('continue to advanced.as and verify its top frame', async () => {
         await client.request('continue', { threadId: basicStop.threadId });
@@ -191,7 +198,7 @@ async function run(client, port, sessionRequest, step) {
         return stopped;
     });
     const values = await step('read the advanced locals and scopes', () => locals(client, advancedStop.frames[0]));
-    await step('expand Scout and verify its own and inherited members', async () => {
+    await step('expand Scout (rank = 3, inherited name = "Rook")', async () => {
         const scout = await variables(client, findVariable(values, 'scout'));
         assert.equal(findVariable(scout, 'rank').value, '3');
         assert.equal(findVariable(scout, 'name').value, '"Rook"');
