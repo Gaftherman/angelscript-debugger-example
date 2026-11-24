@@ -1,0 +1,16 @@
+/** Writes a message to the host console. */
+void print(const string &in);
+
+/** A player owned by the host. */
+class Player
+{
+    /** The player's display name. */
+    string name;
+    /** The player's current health. */
+    int health;
+    /** Restores health up to 100. */
+    void heal(uint);
+}
+
+/** Returns the player at the given index, or null. */
+Player@ getPlayer(uint);

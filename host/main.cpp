@@ -6,6 +6,7 @@
 #include <scriptmath.h>
 #include <scriptstdstring.h>
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <charconv>
@@ -34,6 +35,11 @@ struct Player
 {
     std::string name;
     int health;
+
+    void Heal(asUINT amount)
+    {
+        health = static_cast<int>(std::min(100LL, static_cast<long long>(health) + amount));
+    }
 };
 
 std::array<Player, 2> players{{{"Ada", 90}, {"Lin", 65}}};
@@ -66,13 +72,16 @@ bool RegisterBindings(asIScriptEngine* engine)
            engine->RegisterObjectType("Player", 0, asOBJ_REF | asOBJ_NOCOUNT) >= 0 &&
            engine->RegisterObjectProperty("Player", "string name", asOFFSET(Player, name)) >= 0 &&
            engine->RegisterObjectProperty("Player", "int health", asOFFSET(Player, health)) >= 0 &&
+           engine->RegisterObjectMethod("Player", "void heal(uint)", asMETHOD(Player, Heal), asCALL_THISCALL) >= 0 &&
            engine->RegisterGlobalFunction("Player@ getPlayer(uint)", asFUNCTION(GetPlayer), asCALL_CDECL) >= 0;
 }
 
 struct Script
 {
+    asIScriptModule* module;
     asIScriptFunction* main;
     asIScriptFunction* tick;
+    asIScriptFunction* onPlayerSpawn;
 };
 
 bool LoadScripts(asIScriptEngine* engine, const std::vector<std::string>& paths, std::vector<Script>& scripts)
@@ -88,21 +97,29 @@ bool LoadScripts(asIScriptEngine* engine, const std::vector<std::string>& paths,
             return false;
         }
 
-        auto* main = builder.GetModule()->GetFunctionByDecl("void main()");
-        auto* tick = builder.GetModule()->GetFunctionByDecl("void Tick()");
-        if (!main)
+        auto* module = builder.GetModule();
+        auto* main = module->GetFunctionByDecl("void main()");
+        auto* tick = module->GetFunctionByDecl("void Tick()");
+        auto* onPlayerSpawn = module->GetFunctionByDecl("void OnPlayerSpawn(Player@)");
+        if (!main && !onPlayerSpawn)
         {
-            std::cerr << path << " must define void main()\n";
+            std::cerr << path << " must define void main() or void OnPlayerSpawn(Player@)\n";
             return false;
         }
-        scripts.push_back({main, tick ? tick : main});
+        if (!tick && !onPlayerSpawn)
+            tick = main;
+        scripts.push_back({module, main, tick, onPlayerSpawn});
     }
     return true;
 }
 
-bool Execute(asIScriptContext* context, asIScriptFunction* function)
+bool Execute(asIScriptContext* context, asIScriptFunction* function, Player* player = nullptr)
 {
-    const int result = context->Prepare(function) < 0 ? asERROR : context->Execute();
+    int result = context->Prepare(function);
+    if (result >= 0 && player)
+        result = context->SetArgObject(0, player);
+    if (result >= 0)
+        result = context->Execute();
     if (result == asEXECUTION_EXCEPTION)
     {
         const char* section = nullptr;
@@ -160,8 +177,9 @@ int main(int argc, char** argv)
             paths.emplace_back(arg);
     }
     if (paths.empty())
-        paths = {"scripts/basic.as", "scripts/advanced.as"};
+        paths = {"scripts/basic.as", "scripts/advanced.as", "scripts/engine.as"};
 
+    Player spawnedPlayer{"Mira", 65};
     auto releaseEngine = [](asIScriptEngine* engine) { engine->ShutDownAndRelease(); };
     std::unique_ptr<asIScriptEngine, decltype(releaseEngine)> engine(asCreateScriptEngine(), releaseEngine);
     if (!engine || engine->SetMessageCallback(asFUNCTION(ReportBuildMessage), nullptr, asCALL_CDECL) < 0 ||
@@ -207,30 +225,33 @@ int main(int argc, char** argv)
     // Initializers can call script functions, so run them after the debugger is ready.
     for (const auto& script : scripts)
     {
-        if (script.main->GetModule()->ResetGlobalVars(context.get()) < 0)
+        if (script.module->ResetGlobalVars(context.get()) < 0)
         {
             debugger.DetachContext(context.get());
             return 1;
         }
     }
 
-    const auto run = [&](asIScriptFunction* Script::* entry) {
+    const auto run = [&](bool startup) {
         for (const auto& script : scripts)
         {
             debugger.Poll();
             if (!running)
                 break;
-            if (!Execute(context.get(), script.*entry))
+            auto* entry = startup ? script.main : script.tick;
+            if (entry && !Execute(context.get(), entry))
+                return false;
+            if (!startup && script.onPlayerSpawn && !Execute(context.get(), script.onPlayerSpawn, &spawnedPlayer))
                 return false;
         }
         return true;
     };
 
-    bool ok = run(&Script::main);
+    bool ok = run(true);
     while (ok && running)
     {
         std::this_thread::sleep_for(250ms);
-        ok = run(&Script::tick);
+        ok = run(false);
     }
     debugger.DetachContext(context.get());
     return ok ? 0 : 1;

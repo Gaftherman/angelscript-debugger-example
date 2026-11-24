@@ -1,3 +1,5 @@
 {
-  "angelscript.debug.enableBreakpointLocations": false
+  "angelscript.debug.enableBreakpointLocations": false,
+  "angelscript.predefined.active": "scripts/host.as.predefined",
+  "angelscript.predefinedFiles": ["scripts/host.as.predefined"]
 }

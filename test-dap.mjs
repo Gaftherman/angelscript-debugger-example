@@ -87,20 +87,29 @@ async function variables(client, container) {
     return (await client.request('variables', { variablesReference: container.variablesReference })).variables;
 }
 
-async function locals(client, frame) {
+async function scopeVariables(client, frame, hint) {
     const { scopes } = await client.request('scopes', { frameId: frame.id });
-    const scope = scopes.find(item => item.presentationHint === 'locals');
-    assert.ok(scope, 'Missing Locals scope');
+    const scope = scopes.find(item => item.presentationHint === hint);
+    assert.ok(scope, `Missing ${hint} scope`);
     return variables(client, scope);
 }
 
-async function setBreakpoints(client, source, lines) {
+function locals(client, frame) {
+    return scopeVariables(client, frame, 'locals');
+}
+
+async function requestBreakpoints(client, source, lines) {
     const { breakpoints } = await client.request('setBreakpoints', {
         source: { name: basename(source.path), path: source.path },
         lines,
         breakpoints: lines.map(line => ({ line })),
         sourceModified: false,
     });
+    return breakpoints;
+}
+
+async function setBreakpoints(client, source, lines) {
+    const breakpoints = await requestBreakpoints(client, source, lines);
     assert.deepEqual(breakpoints.map(({ line, verified }) => ({ line, verified })),
         lines.map(line => ({ line, verified: true })));
 }
@@ -116,6 +125,81 @@ async function stackAt(client, reason, source, line) {
     assert.equal(normalize(frame.source.path), normalize(source.path));
     assert.equal(frame.line, line, 'Script frame line');
     return { threadId: stop.threadId, frame, frames: stackFrames };
+}
+
+function reportStack(frames) {
+    console.log(`     Stack: ${frames.map(frame =>
+        `${frame.name} (${frame.source?.path ? basename(frame.source.path) : 'no source'}:${frame.line})`
+    ).join(' <- ')}`);
+}
+
+async function checkPlayer(client, values, health) {
+    const player = findVariable(values, 'player');
+    assert.match(player.type, /^Player@?$/);
+    const members = await variables(client, player);
+    assert.equal(findVariable(members, 'name').value, '"Mira"');
+    assert.equal(findVariable(members, 'health').value, String(health));
+}
+
+async function probeEngine(client, threadId, step) {
+    const engine = script('engine.as');
+    const stub = script('host.as.predefined');
+    const print = bpLine(engine, 'print(message);');
+    const heal = bpLine(engine, 'player.heal(amount);');
+    const callback = bpLine(engine, 'lastHealth = player.health;');
+    const declaration = stub.lines.indexOf('void print(const string &in);') + 1;
+    assert.ok(declaration > 0, 'Missing print declaration in the predefined stub');
+
+    await step('verify the native-call and host callback breakpoints', async () => {
+        await setBreakpoints(client, engine, [print, callback]);
+    });
+    await step('stop at print and expand the Player argument (Mira, health = 65)', async () => {
+        await client.request('continue', { threadId });
+        const { frame, frames } = await stackAt(client, 'breakpoint', engine, print);
+        reportStack(frames);
+        assert.deepEqual(frames.map(item => item.name.split('(')[0]), ['void healPlayer', 'void OnPlayerSpawn']);
+        assert.equal(findVariable(await locals(client, frame), 'message').value, '"Healing Mira"');
+        const values = await scopeVariables(client, frame, 'parameters');
+        assert.equal(findVariable(values, 'amount').value, '5');
+        await checkPlayer(client, values, 65);
+    });
+    await step('step into native print and land at the heal call with only script frames', async () => {
+        await client.request('stepIn', { threadId });
+        const { frames } = await stackAt(client, 'step', engine, heal);
+        reportStack(frames);
+        assert.deepEqual(frames.map(item => item.name.split('(')[0]), ['void healPlayer', 'void OnPlayerSpawn']);
+    });
+    await step('step into native heal and land on the next script line (health = 70)', async () => {
+        await client.request('stepIn', { threadId });
+        const { frame, frames } = await stackAt(client, 'step', engine, heal + 1);
+        reportStack(frames);
+        assert.deepEqual(frames.map(item => item.name.split('(')[0]), ['void healPlayer', 'void OnPlayerSpawn']);
+        await checkPlayer(client, await scopeVariables(client, frame, 'parameters'), 70);
+    });
+    await step('stop in the host-invoked callback with one script frame and a Player argument', async () => {
+        await client.request('continue', { threadId });
+        const { frame, frames } = await stackAt(client, 'breakpoint', engine, callback);
+        reportStack(frames);
+        assert.equal(frames.length, 1);
+        assert.match(frame.name, /\bOnPlayerSpawn\(/);
+        await checkPlayer(client, await scopeVariables(client, frame, 'parameters'), 70);
+    });
+    let stubBreakpoints;
+    await step('request a breakpoint on the predefined print declaration', async () => {
+        stubBreakpoints = await requestBreakpoints(client, stub, [declaration]);
+        console.log(`     Stub response: ${JSON.stringify(stubBreakpoints)}`);
+        assert.equal(stubBreakpoints.length, 1);
+        assert.equal(stubBreakpoints[0].line, declaration);
+    });
+    await step('continue after the stub request and hit the callback breakpoint on the next tick', async () => {
+        await client.request('continue', { threadId });
+        const { frame } = await stackAt(client, 'breakpoint', engine, callback);
+        await checkPlayer(client, await scopeVariables(client, frame, 'parameters'), 70);
+    });
+    await step('verify that the stub breakpoint is unbound', () => {
+        assert.equal(stubBreakpoints[0].verified, false);
+        assert.equal(stubBreakpoints[0].message, 'Predefined stubs contain declarations only.');
+    });
 }
 
 async function run(client, port, sessionRequest, step) {
@@ -233,7 +317,9 @@ async function run(client, port, sessionRequest, step) {
         await client.request('continue', { threadId: advancedStop.threadId });
         const stopped = await stackAt(client, 'breakpoint', advanced, callback);
         assert.match(stopped.frames[1]?.name ?? '', /\bTick\(/);
+        await setBreakpoints(client, advanced, []);
     });
+    await probeEngine(client, advancedStop.threadId, step);
     await step('disconnect', () => client.request('disconnect', { terminateDebuggee: false }));
 }
 
