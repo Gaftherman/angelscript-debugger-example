@@ -1,0 +1,6 @@
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+*.log
+# Local recordings before they are optimized
+docs/*.mp4
