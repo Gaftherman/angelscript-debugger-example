@@ -5,8 +5,9 @@
       "label": "Build AngelScript Demo",
       "type": "process",
       "command": "cmd.exe",
-      "args": ["/d", "/c", "run-demo.cmd", "--build-only"],
+      "args": ["/d", "/c", ".\\run-demo.cmd", "--build-only"],
       "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "reveal": "silent", "close": true },
       "problemMatcher": "$msCompile",
       "group": "build"
     }

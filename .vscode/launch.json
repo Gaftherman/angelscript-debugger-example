@@ -14,7 +14,7 @@
       "type": "angelscript",
       "request": "launch",
       "executable": "${workspaceFolder}/build/bin/Release/angelscript-demo.exe",
-      "args": ["--wait"],
+      "args": ["--wait", "--once", "scripts/basic.as"],
       "cwd": "${workspaceFolder}",
       "host": "127.0.0.1",
       "port": 9002,

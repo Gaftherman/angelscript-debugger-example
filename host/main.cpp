@@ -146,17 +146,20 @@ int main(int argc, char** argv)
 {
     int port = 9002;
     bool wait = false;
+    bool once = false;
     std::vector<std::string> paths;
     for (int i = 1; i < argc; ++i)
     {
         std::string_view arg = argv[i];
         if (arg == "--help")
         {
-            std::cout << "Usage: angelscript-demo [--wait] [--port N] [script.as ...]\n";
+            std::cout << "Usage: angelscript-demo [--wait] [--once] [--port N] [script.as ...]\n";
             return 0;
         }
         if (arg == "--wait")
             wait = true;
+        else if (arg == "--once")
+            once = true;
         else if (arg == "--port")
         {
             const std::string_view value = ++i < argc ? argv[i] : "";
@@ -248,7 +251,7 @@ int main(int argc, char** argv)
     };
 
     bool ok = run(true);
-    while (ok && running)
+    while (!once && ok && running)
     {
         std::this_thread::sleep_for(250ms);
         ok = run(false);
