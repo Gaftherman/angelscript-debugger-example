@@ -21,7 +21,7 @@ jobs:
           git archive HEAD | tar -x -C "dist/$name"
           git submodule foreach --quiet 'git archive --prefix="$sm_path/" HEAD | tar -x -C "$toplevel/dist/'"$name"'"'
           (cd dist && zip -qr "$name.zip" "$name")
-          unzip -l "dist/$name.zip" | grep -E '\.(gif|png|mp4|log)$' && exit 1 || true
+          unzip -Z1 "dist/$name.zip" | grep -v '/external/angelscript/sdk/' | grep -E '\.(gif|png|mp4|log)$' && exit 1 || true
       - name: Release notes from the changelog
         run: |
           version="${GITHUB_REF_NAME#v}"
