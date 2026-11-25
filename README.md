@@ -1,6 +1,6 @@
 # AngelScript Debugger Example
 
-**[English](README.md)** | **[Español](README.es.md)**
+**[English](README.md)** | **[Español](docs/README.es.md)**
 
 A small C++ host to run and debug AngelScript from VS Code.
 
@@ -48,22 +48,32 @@ Wait for `DAP listening`, then select **Attach to AngelScript Demo** in VS Code,
     │   ├── 📄 advanced.as         Objects, collections, and exceptions
     │   ├── 📄 engine.as           Host calls and callbacks
     │   └── 📄 host.as.predefined  Host API declarations
+    ├── 📁 external
+    │   ├── 📁 angelscript         AngelScript engine (submodule)
+    │   └── 📁 angelscript-dap     Debugger core (submodule)
     ├── 📁 media
-    └── 📄 run-demo.cmd            Build, run, and test the demo
+    └── 📄 run-demo.cmd            Build and run the demo
 ```
 
 ## Requirements
-Windows, Git, CMake 3.21+, Ninja, Visual Studio 2022+ or Build Tools with **Desktop development with C++** (MSVC x64, C++20), VS Code with the [AngelScript extension](https://marketplace.visualstudio.com/items?itemName=Gaftherman.angelscript-gaftherman), and Node.js 18+ for tests.
+Windows, Git, CMake 3.21+, Ninja, Visual Studio 2022+ or Build Tools with **Desktop development with C++** (MSVC x64, C++20), and VS Code with the [AngelScript extension](https://marketplace.visualstudio.com/items?itemName=Gaftherman.angelscript-gaftherman).
 
-## Tests
-```text
-> .\run-demo.cmd --test
+## Use the debugger in your own host
+The debugger is the [angelscript-dap](https://github.com/Gaftherman/angelscript-dap) repository, included here as a submodule. [`host/main.cpp`](host/main.cpp) shows the calls a host makes, and the angelscript-dap README lists the CMake options.
+
+```cmake
+add_subdirectory(external/angelscript-dap)  # after your AngelScript target
+target_link_libraries(my_host PRIVATE angelscript_dap)
 ```
-Tests the DAP attach flow.
 
-```text
-> .\run-demo.cmd --test-launch
-```
-Tests the DAP launch flow.
+## Related projects
 
-To use the debugger in your own host, see the [asdebugger README](https://github.com/Gaftherman/asdebugger). Sven Co-op uses the same debugger through its Metamod plugin.
+| Project | Use |
+| --- | --- |
+| [angelscript-dap](https://github.com/Gaftherman/angelscript-dap) | The debugger core and its support |
+| [angelscript-cli](https://github.com/Gaftherman/angelscript-cli) | Run, check and debug scripts from the terminal |
+| [angelscript-lsp](https://github.com/Gaftherman/angelscript-lsp) | Editor support for VS Code |
+| [asdebugger](https://github.com/Gaftherman/asdebugger) | The Sven Co-op plugin built on the same core |
+
+## License
+[MIT](LICENSE). See also [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/THIRD_PARTY.md](docs/THIRD_PARTY.md).

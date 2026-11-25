@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  zip:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Build a clean source zip
+        run: |
+          name="angelscript-debugger-example-${GITHUB_REF_NAME}"
+          mkdir -p "dist/$name"
+          git archive HEAD | tar -x -C "dist/$name"
+          git submodule foreach --quiet 'git archive --prefix="$sm_path/" HEAD | tar -x -C "$toplevel/dist/'"$name"'"'
+          (cd dist && zip -qr "$name.zip" "$name")
+          unzip -l "dist/$name.zip" | grep -E '\.(gif|png|mp4|log)$' && exit 1 || true
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/*.zip --title "$GITHUB_REF_NAME" --generate-notes

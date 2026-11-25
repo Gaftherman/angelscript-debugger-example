@@ -1,0 +1,11 @@
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.gif binary
+*.png binary
+
+# Left out of `git archive` and of the source zip of a release.
+/media export-ignore
+/docs/images export-ignore
+/.github export-ignore
+/.gitattributes export-ignore
+/.editorconfig export-ignore

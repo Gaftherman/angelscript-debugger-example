@@ -1,7 +1,6 @@
 [submodule "external/angelscript"]
 	path = external/angelscript
 	url = https://github.com/anjo76/angelscript
-[submodule "external/asdebugger"]
-	path = external/asdebugger
-	url = https://github.com/Gaftherman/asdebugger.git
-	branch = refactor/host-agnostic-core
+[submodule "external/angelscript-dap"]
+	path = external/angelscript-dap
+	url = https://github.com/Gaftherman/angelscript-dap
