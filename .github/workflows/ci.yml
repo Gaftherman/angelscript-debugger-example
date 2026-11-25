@@ -32,3 +32,16 @@ jobs:
         run: cmake --build build --parallel 4
       - name: Core tests
         run: ctest --test-dir build --output-on-failure
+      - name: DAP attach test
+        shell: bash
+        run: |
+          exe=build/bin/angelscript-demo
+          [ "$RUNNER_OS" = Windows ] && exe=build/bin/angelscript-demo.exe
+          "$exe" --wait --port 9002 > host.log 2>&1 &
+          host=$!
+          sleep 3
+          node test-dap.mjs 9002 attach
+          status=$?
+          kill $host 2>/dev/null || true
+          cat host.log
+          exit $status
