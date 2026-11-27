@@ -16,5 +16,8 @@ All notable changes to this project are documented in this file. The format foll
 
 - The debugger core is the `external/angelscript-dap` submodule. The tests that drive a debug session live on the `tests` branch.
 
+---
+**Full Changelog**: https://github.com/Gaftherman/angelscript-debugger-example/commits/v1.0.0
+
 [Unreleased]: https://github.com/Gaftherman/angelscript-debugger-example/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/Gaftherman/angelscript-debugger-example/releases/tag/v1.0.0
