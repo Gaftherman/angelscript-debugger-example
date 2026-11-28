@@ -8,7 +8,7 @@ All notable changes to this project are documented in this file. The format foll
 
 ### Added
 
-- A minimal AngelScript host that embeds the debugger from [angelscript-dap](https://github.com/Gaftherman/angelscript-dap), with sample scripts and the VS Code `launch.json` to attach with F5.
+- A minimal AngelScript host that embeds the debugger from [angelscript-dap](https://github.com/angelscript-tools/angelscript-dap), with sample scripts and the VS Code `launch.json` to attach with F5.
 - `run-demo.cmd` and `run-demo.ps1` to build and run the example on Windows.
 - MIT license, English and Spanish documentation and contribution guides.
 
@@ -17,7 +17,7 @@ All notable changes to this project are documented in this file. The format foll
 - The debugger core is the `external/angelscript-dap` submodule. The tests that drive a debug session live on the `tests` branch.
 
 ---
-**Full Changelog**: https://github.com/Gaftherman/angelscript-debugger-example/commits/v1.0.0
+**Full Changelog**: https://github.com/angelscript-tools/angelscript-debugger-example/commits/v1.0.0
 
-[Unreleased]: https://github.com/Gaftherman/angelscript-debugger-example/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/Gaftherman/angelscript-debugger-example/releases/tag/v1.0.0
+[Unreleased]: https://github.com/angelscript-tools/angelscript-debugger-example/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/angelscript-tools/angelscript-debugger-example/releases/tag/v1.0.0

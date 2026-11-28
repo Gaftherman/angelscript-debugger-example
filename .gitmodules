@@ -3,4 +3,4 @@
 	url = https://github.com/anjo76/angelscript
 [submodule "external/angelscript-dap"]
 	path = external/angelscript-dap
-	url = https://github.com/Gaftherman/angelscript-dap
+	url = https://github.com/angelscript-tools/angelscript-dap

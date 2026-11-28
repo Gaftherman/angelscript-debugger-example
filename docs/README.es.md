@@ -9,7 +9,7 @@ Un pequeño programa anfitrión en C++ para ejecutar y depurar AngelScript desde
 
 ## Inicio rápido
 ```text
-> git clone --recursive https://github.com/Gaftherman/angelscript-debugger-example.git
+> git clone --recursive https://github.com/angelscript-tools/angelscript-debugger-example.git
 > cd angelscript-debugger-example
 ```
 ```text
@@ -59,7 +59,7 @@ Cuando aparezca `DAP listening`, elige **Attach to AngelScript Demo** en VS Code
 Windows, Git, CMake 3.21+, Ninja, Visual Studio 2022+ o Build Tools con **Desarrollo para el escritorio con C++** (MSVC x64, C++20) y VS Code con la [extensión de AngelScript](https://marketplace.visualstudio.com/items?itemName=Gaftherman.angelscript-gaftherman).
 
 ## Usar el depurador en tu propia aplicación
-El depurador es el repositorio [angelscript-dap](https://github.com/Gaftherman/angelscript-dap), incluido aquí como submódulo. [`host/main.cpp`](../host/main.cpp) muestra las llamadas que hace una aplicación, y el README de angelscript-dap lista las opciones de CMake.
+El depurador es el repositorio [angelscript-dap](https://github.com/angelscript-tools/angelscript-dap), incluido aquí como submódulo. [`host/main.cpp`](../host/main.cpp) muestra las llamadas que hace una aplicación, y el README de angelscript-dap lista las opciones de CMake.
 
 ```cmake
 add_subdirectory(external/angelscript-dap)  # después de tu destino de AngelScript
@@ -70,10 +70,10 @@ target_link_libraries(my_host PRIVATE angelscript_dap)
 
 | Proyecto | Uso |
 | --- | --- |
-| [angelscript-dap](https://github.com/Gaftherman/angelscript-dap) | El núcleo del depurador y su soporte |
-| [angelscript-cli](https://github.com/Gaftherman/angelscript-cli) | Ejecuta, comprueba y depura scripts desde la terminal |
-| [angelscript-lsp](https://github.com/Gaftherman/angelscript-lsp) | Soporte del editor para VS Code |
-| [asdebugger](https://github.com/Gaftherman/asdebugger) | El complemento de Sven Co-op construido sobre el mismo núcleo |
+| [angelscript-dap](https://github.com/angelscript-tools/angelscript-dap) | El núcleo del depurador y su soporte |
+| [angelscript-cli](https://github.com/angelscript-tools/angelscript-cli) | Ejecuta, comprueba y depura scripts desde la terminal |
+| [angelscript-lsp](https://github.com/angelscript-tools/angelscript-lsp) | Soporte del editor para VS Code |
+| [asdebugger](https://github.com/Gaftherman/svencoop-asdebugger) | El complemento de Sven Co-op construido sobre el mismo núcleo |
 
 ## Licencia
 [MIT](../LICENSE). Consulta también [CONTRIBUTING.es.md](CONTRIBUTING.es.md) y [THIRD_PARTY.md](THIRD_PARTY.md).
